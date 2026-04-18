@@ -1,11 +1,34 @@
 {
-  "name": "@figma/my-make-file",
-  "private": true,
-  "version": "0.0.1",
+  "name": "paleopatologia-museo-virtual",
+  "version": "1.0.0",
+  "description": "Museo virtual interactivo sobre paleopatología - Proyecto educativo sobre la historia de la enfermedad en la humanidad",
   "type": "module",
+  "keywords": [
+    "paleopatología",
+    "arqueología",
+    "educación",
+    "museo virtual",
+    "divulgación científica",
+    "react",
+    "tailwind"
+  ],
+  "author": {
+    "name": "Equipo Paleopatología",
+    "email": "info@paleopatologia.edu"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TU_USUARIO/paleopatologia-museo-virtual.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TU_USUARIO/paleopatologia-museo-virtual/issues"
+  },
+  "homepage": "https://github.com/TU_USUARIO/paleopatologia-museo-virtual#readme",
   "scripts": {
+    "dev": "vite",
     "build": "vite build",
-    "dev": "vite"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
