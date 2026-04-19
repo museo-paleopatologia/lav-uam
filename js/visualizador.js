@@ -1,21 +1,25 @@
 /**
- * OsteoVirtual · Visualizador Interactivo
- * Gestiona: deep linking, vistas A/B, filtros combinados, render de resultados
+ * OsteoVirtual · Visualizador Interactivo v2
+ *
+ * Lógica de filtrado:
+ *   - Dentro de una misma categoría → OR  (region: piernas OR brazos)
+ *   - Entre categorías distintas    → AND (region: X  AND  patologia: Y)
+ *
+ * Cada filtro ahora es un Set en lugar de un valor único.
  */
 
 /* ══════════════════════════════════════════════════
    ESTADO GLOBAL
 ══════════════════════════════════════════════════ */
 const state = {
-  view: 'anatomia',          // 'anatomia' | 'patologia'
+  view: 'anatomia',
   filters: {
-    region: null,
-    patologia: null,
-    sexo: null,
-    epoca: null,
-    query: ''
-  },
-  highlightRegion: null      // región resaltada en el SVG
+    region:    new Set(),   // OR entre valores seleccionados
+    patologia: new Set(),   // OR entre valores seleccionados
+    sexo:      new Set(),   // OR entre valores seleccionados
+    epoca:     new Set(),   // OR entre valores seleccionados
+    query:     ''
+  }
 };
 
 /* ══════════════════════════════════════════════════
@@ -27,24 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
   bindFilters();
   bindSearchBox();
   bindSkeletonSVG();
-  bindMobilePanel();
   renderView();
   renderResults();
   updateActiveFiltersBar();
 });
 
 /* ══════════════════════════════════════════════════
-   DEEP LINKING — lee ?view=anatomia | ?view=patologia
+   DEEP LINKING
 ══════════════════════════════════════════════════ */
 function readURLParams() {
   const params = new URLSearchParams(window.location.search);
-  const v = params.get('view');
-  if (v === 'patologia') state.view = 'patologia';
-  else                   state.view = 'anatomia';
 
-  /* Región preseleccionada por un chip de la landing */
+  const v = params.get('view');
+  state.view = (v === 'patologia') ? 'patologia' : 'anatomia';
+
+  // ?region=pelvis  — puede llegar como valor único desde la landing
   const r = params.get('region');
-  if (r && VOCABULARIO.region[r]) state.filters.region = r;
+  if (r && VOCABULARIO.region[r]) state.filters.region.add(r);
 }
 
 /* ══════════════════════════════════════════════════
@@ -78,7 +81,7 @@ function renderView() {
     paneA.classList.add('is-visible');
     paneB.classList.remove('is-visible');
     updateViewBtns();
-    highlightSkeletonRegion(state.filters.region);
+    highlightSkeletonRegions(state.filters.region);
   } else {
     paneB.classList.add('is-visible');
     paneA.classList.remove('is-visible');
@@ -88,39 +91,41 @@ function renderView() {
 }
 
 /* ══════════════════════════════════════════════════
-   SKELETON SVG — click en regiones
+   SKELETON SVG — multi-select
 ══════════════════════════════════════════════════ */
 function bindSkeletonSVG() {
   document.querySelectorAll('[data-region]').forEach(el => {
-    el.style.cursor = 'pointer';
     el.addEventListener('click', () => {
       const r = el.dataset.region;
-      if (state.filters.region === r) {
-        state.filters.region = null; // deselect toggle
+      // Toggle: si ya está en el Set lo quita, si no lo añade
+      if (state.filters.region.has(r)) {
+        state.filters.region.delete(r);
       } else {
-        state.filters.region = r;
+        state.filters.region.add(r);
       }
-      highlightSkeletonRegion(state.filters.region);
+      highlightSkeletonRegions(state.filters.region);
       syncFilterUI();
       renderResults();
       updateActiveFiltersBar();
-      /* En móvil, auto-scroll a resultados */
-      if (window.innerWidth < 1024) {
-        document.getElementById('results-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
     });
 
-    /* Hover tooltip */
-    el.addEventListener('mouseenter', (e) => showSVGTooltip(e, VOCABULARIO.region[el.dataset.region]?.label));
+    el.addEventListener('mouseenter', e =>
+      showSVGTooltip(e, VOCABULARIO.region[el.dataset.region]?.label));
     el.addEventListener('mouseleave', hideSVGTooltip);
   });
 }
 
-function highlightSkeletonRegion(regionKey) {
+/**
+ * Resalta TODAS las regiones activas (Set) y atenúa el resto.
+ * Si el set está vacío, todas las regiones vuelven a su estado normal.
+ */
+function highlightSkeletonRegions(regionSet) {
+  const hasActive = regionSet.size > 0;
   document.querySelectorAll('[data-region]').forEach(el => {
-    const isActive = el.dataset.region === regionKey;
-    el.classList.toggle('region--active', isActive);
-    el.classList.toggle('region--dim',    regionKey && !isActive);
+    const key = el.dataset.region;
+    const active = regionSet.has(key);
+    el.classList.toggle('region--active', active);
+    el.classList.toggle('region--dim',    hasActive && !active);
   });
 }
 
@@ -149,7 +154,7 @@ function hideSVGTooltip() {
 }
 
 /* ══════════════════════════════════════════════════
-   GRID DE PATOLOGÍAS (Vista B)
+   GRID DE PATOLOGÍAS (Vista B) — multi-select
 ══════════════════════════════════════════════════ */
 function renderPatologyGrid() {
   const grid = document.getElementById('patology-grid');
@@ -158,7 +163,8 @@ function renderPatologyGrid() {
 
   Object.entries(VOCABULARIO.patologia).forEach(([key, meta]) => {
     const count = PIEZAS.filter(p => p.patologia === key).length;
-    const isActive = state.filters.patologia === key;
+    const isActive = state.filters.patologia.has(key);
+
     const card = document.createElement('button');
     card.className = 'patol-card' + (isActive ? ' is-active' : '');
     card.dataset.patologia = key;
@@ -169,7 +175,11 @@ function renderPatologyGrid() {
       <span class="patol-card__count">${count} pieza${count !== 1 ? 's' : ''}</span>
     `;
     card.addEventListener('click', () => {
-      state.filters.patologia = (state.filters.patologia === key) ? null : key;
+      if (state.filters.patologia.has(key)) {
+        state.filters.patologia.delete(key);
+      } else {
+        state.filters.patologia.add(key);
+      }
       renderPatologyGrid();
       syncFilterUI();
       renderResults();
@@ -180,37 +190,34 @@ function renderPatologyGrid() {
 }
 
 /* ══════════════════════════════════════════════════
-   PANEL DE FILTROS LATERALES
+   PANEL DE FILTROS LATERALES — multi-select
 ══════════════════════════════════════════════════ */
 function bindFilters() {
-  /* Filtros tipo checkbox estilizado */
   document.querySelectorAll('[data-filter]').forEach(el => {
     el.addEventListener('change', () => {
       const cat = el.dataset.filter;
       const val = el.value;
-      if (el.type === 'checkbox') {
-        state.filters[cat] = el.checked ? val : null;
-        /* Deselect siblings */
-        if (el.checked) {
-          document.querySelectorAll(`[data-filter="${cat}"]`).forEach(s => {
-            if (s !== el) s.checked = false;
-          });
-        }
+      if (el.checked) {
+        state.filters[cat].add(val);
+      } else {
+        state.filters[cat].delete(val);
       }
       renderResults();
       updateActiveFiltersBar();
-      if (cat === 'region') highlightSkeletonRegion(state.filters.region);
+      if (cat === 'region') highlightSkeletonRegions(state.filters.region);
+      if (cat === 'patologia' && state.view === 'patologia') renderPatologyGrid();
     });
   });
 }
 
+/**
+ * Sincroniza los checkboxes del DOM con el estado actual de los Sets.
+ * Se llama tras cambios desde el SVG o desde los tags de las cards.
+ */
 function syncFilterUI() {
-  /* Sync checkboxes with state */
-  Object.entries(state.filters).forEach(([cat, val]) => {
+  ['region', 'patologia', 'sexo', 'epoca'].forEach(cat => {
     document.querySelectorAll(`[data-filter="${cat}"]`).forEach(el => {
-      if (el.type === 'checkbox') {
-        el.checked = (el.value === val);
-      }
+      el.checked = state.filters[cat].has(el.value);
     });
   });
 }
@@ -229,25 +236,29 @@ function bindSearchBox() {
 }
 
 /* ══════════════════════════════════════════════════
-   LÓGICA DE FILTRADO COMBINADO
+   LÓGICA DE FILTRADO
+   OR dentro de cada categoría, AND entre categorías
 ══════════════════════════════════════════════════ */
 function getFilteredPieces() {
+  const { region, patologia, sexo, epoca, query } = state.filters;
+
   return PIEZAS.filter(p => {
-    const { region, patologia, sexo, epoca, query } = state.filters;
-    if (region    && p.region    !== region)    return false;
-    if (patologia && p.patologia !== patologia)  return false;
-    if (sexo      && p.sexo      !== sexo)       return false;
-    if (epoca     && p.epoca     !== epoca)      return false;
+    // Cada categoría: si el Set tiene valores, la pieza debe estar en alguno (OR)
+    if (region.size    > 0 && !region.has(p.region))       return false;
+    if (patologia.size > 0 && !patologia.has(p.patologia))  return false;
+    if (sexo.size      > 0 && !sexo.has(p.sexo))            return false;
+    if (epoca.size     > 0 && !epoca.has(p.epoca))          return false;
+
     if (query) {
-      const haystack = `${p.id} ${p.nombre} ${p.descripcion} ${p.yacimiento}`.toLowerCase();
-      if (!haystack.includes(query)) return false;
+      const hay = `${p.id} ${p.nombre} ${p.descripcion} ${p.yacimiento}`.toLowerCase();
+      if (!hay.includes(query)) return false;
     }
     return true;
   });
 }
 
 /* ══════════════════════════════════════════════════
-   RENDER PANEL DE RESULTADOS
+   RENDER RESULTADOS
 ══════════════════════════════════════════════════ */
 function renderResults() {
   const container = document.getElementById('results-list');
@@ -255,23 +266,20 @@ function renderResults() {
   if (!container) return;
 
   const results = getFilteredPieces();
-  countEl.textContent = `${results.length} pieza${results.length !== 1 ? 's' : ''}`;
+  if (countEl) countEl.textContent = `${results.length} pieza${results.length !== 1 ? 's' : ''}`;
 
   if (results.length === 0) {
     container.innerHTML = `
       <div class="results-empty">
         <span class="results-empty__icon">🔍</span>
-        <p>Sin resultados para esta combinación de filtros.</p>
+        <p>Sin resultados para esta combinación.</p>
         <button class="btn-clear-all" onclick="clearAllFilters()">Limpiar filtros</button>
       </div>`;
     return;
   }
 
   container.innerHTML = '';
-  results.forEach((pieza, i) => {
-    const card = buildResultCard(pieza, i);
-    container.appendChild(card);
-  });
+  results.forEach((pieza, i) => container.appendChild(buildResultCard(pieza, i)));
 }
 
 function buildResultCard(pieza, index) {
@@ -282,7 +290,7 @@ function buildResultCard(pieza, index) {
 
   const card = document.createElement('article');
   card.className = 'result-card';
-  card.style.animationDelay = `${index * 0.06}s`;
+  card.style.animationDelay = `${index * 0.055}s`;
   card.style.setProperty('--accent', patMeta.color);
 
   card.innerHTML = `
@@ -295,32 +303,37 @@ function buildResultCard(pieza, index) {
       <h3 class="result-card__title">${pieza.nombre}</h3>
       <p class="result-card__desc">${pieza.descripcion}</p>
       <div class="result-card__meta">
-        <span class="result-tag result-tag--region" title="Región" data-clickable data-filter-type="region" data-filter-val="${pieza.region}">
+        <span class="result-tag result-tag--region" data-clickable data-filter-type="region" data-filter-val="${pieza.region}">
           ${regMeta.icon} ${regMeta.label}
         </span>
-        <span class="result-tag result-tag--patol" style="--tag-color:${patMeta.color}" title="Patología" data-clickable data-filter-type="patologia" data-filter-val="${pieza.patologia}">
+        <span class="result-tag result-tag--patol" style="--tag-color:${patMeta.color}" data-clickable data-filter-type="patologia" data-filter-val="${pieza.patologia}">
           ${patMeta.icon} ${patMeta.label}
         </span>
-        <span class="result-tag result-tag--sexo" title="Sexo">
+        <span class="result-tag result-tag--sexo">
           ${sexMeta.icon} ${sexMeta.label}
         </span>
       </div>
       <a href="${pieza.ficha}" class="result-card__link">
-        Ver ficha completa <span aria-hidden="true">→</span>
+        Ver ficha <span aria-hidden="true">→</span>
       </a>
     </div>
   `;
 
-  /* Click en tags de la card = aplica filtro */
+  // Click en tag dentro de la card = toggle en el Set correspondiente
   card.querySelectorAll('[data-clickable]').forEach(tag => {
     tag.addEventListener('click', () => {
       const cat = tag.dataset.filterType;
       const val = tag.dataset.filterVal;
-      state.filters[cat] = (state.filters[cat] === val) ? null : val;
+      if (state.filters[cat].has(val)) {
+        state.filters[cat].delete(val);
+      } else {
+        state.filters[cat].add(val);
+      }
       syncFilterUI();
       renderResults();
       updateActiveFiltersBar();
-      if (cat === 'region') highlightSkeletonRegion(state.filters.region);
+      if (cat === 'region') highlightSkeletonRegions(state.filters.region);
+      if (cat === 'patologia' && state.view === 'patologia') renderPatologyGrid();
     });
   });
 
@@ -328,25 +341,33 @@ function buildResultCard(pieza, index) {
 }
 
 /* ══════════════════════════════════════════════════
-   BARRA DE FILTROS ACTIVOS
+   BARRA DE FILTROS ACTIVOS — un chip por valor
 ══════════════════════════════════════════════════ */
 function updateActiveFiltersBar() {
   const bar = document.getElementById('active-filters-bar');
   if (!bar) return;
 
   const chips = [];
-  const { region, patologia, sexo, epoca, query } = state.filters;
 
-  if (region)    chips.push({ cat: 'region',    label: VOCABULARIO.region[region].label,         icon: VOCABULARIO.region[region].icon });
-  if (patologia) chips.push({ cat: 'patologia', label: VOCABULARIO.patologia[patologia].label,   icon: VOCABULARIO.patologia[patologia].icon });
-  if (sexo)      chips.push({ cat: 'sexo',      label: VOCABULARIO.sexo[sexo].label,             icon: VOCABULARIO.sexo[sexo].icon });
-  if (epoca)     chips.push({ cat: 'epoca',     label: VOCABULARIO.epoca[epoca].label,           icon: '📅' });
-  if (query)     chips.push({ cat: 'query',     label: `"${query}"`,                             icon: '🔍' });
+  state.filters.region.forEach(v =>
+    chips.push({ cat: 'region', val: v, label: VOCABULARIO.region[v].label, icon: VOCABULARIO.region[v].icon }));
+
+  state.filters.patologia.forEach(v =>
+    chips.push({ cat: 'patologia', val: v, label: VOCABULARIO.patologia[v].label, icon: VOCABULARIO.patologia[v].icon }));
+
+  state.filters.sexo.forEach(v =>
+    chips.push({ cat: 'sexo', val: v, label: VOCABULARIO.sexo[v].label, icon: VOCABULARIO.sexo[v].icon }));
+
+  state.filters.epoca.forEach(v =>
+    chips.push({ cat: 'epoca', val: v, label: VOCABULARIO.epoca[v].label, icon: '📅' }));
+
+  if (state.filters.query)
+    chips.push({ cat: 'query', val: '', label: `"${state.filters.query}"`, icon: '🔍' });
 
   bar.innerHTML = '';
 
   if (chips.length === 0) {
-    bar.innerHTML = '<span class="active-filter-hint">Sin filtros activos · Mostrando todo</span>';
+    bar.innerHTML = '<span class="active-filter-hint">Sin filtros · mostrando todo</span>';
     return;
   }
 
@@ -354,69 +375,66 @@ function updateActiveFiltersBar() {
     const el = document.createElement('button');
     el.className = 'active-filter-chip';
     el.innerHTML = `${chip.icon} ${chip.label} <span class="chip-x">×</span>`;
+    el.title = `Quitar "${chip.label}"`;
     el.addEventListener('click', () => {
       if (chip.cat === 'query') {
         state.filters.query = '';
-        document.getElementById('search-input').value = '';
+        const inp = document.getElementById('search-input');
+        const inpM = document.getElementById('search-input-mob');
+        if (inp)  inp.value  = '';
+        if (inpM) inpM.value = '';
       } else {
-        state.filters[chip.cat] = null;
+        state.filters[chip.cat].delete(chip.val);
       }
       syncFilterUI();
       renderResults();
       updateActiveFiltersBar();
-      if (chip.cat === 'region') highlightSkeletonRegion(null);
+      if (chip.cat === 'region') highlightSkeletonRegions(state.filters.region);
+      if (chip.cat === 'patologia' && state.view === 'patologia') renderPatologyGrid();
     });
     bar.appendChild(el);
   });
 
-  const clearAll = document.createElement('button');
-  clearAll.className = 'active-filter-chip active-filter-chip--clear';
-  clearAll.textContent = 'Limpiar todo';
-  clearAll.addEventListener('click', clearAllFilters);
-  bar.appendChild(clearAll);
+  // Botón limpiar todo — solo si hay algo activo
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'active-filter-chip active-filter-chip--clear';
+  clearBtn.textContent = 'Limpiar todo';
+  clearBtn.addEventListener('click', clearAllFilters);
+  bar.appendChild(clearBtn);
 }
 
 /* ══════════════════════════════════════════════════
-   RESET FILTROS
+   RESET
 ══════════════════════════════════════════════════ */
 function clearAllFilters() {
-  state.filters = { region: null, patologia: null, sexo: null, epoca: null, query: '' };
+  state.filters.region    = new Set();
+  state.filters.patologia = new Set();
+  state.filters.sexo      = new Set();
+  state.filters.epoca     = new Set();
+  state.filters.query     = '';
+
   syncFilterUI();
-  highlightSkeletonRegion(null);
-  const input = document.getElementById('search-input');
-  if (input) input.value = '';
+  highlightSkeletonRegions(new Set());
+
+  const inp  = document.getElementById('search-input');
+  const inpM = document.getElementById('search-input-mob');
+  if (inp)  inp.value  = '';
+  if (inpM) inpM.value = '';
+
   renderResults();
   updateActiveFiltersBar();
   if (state.view === 'patologia') renderPatologyGrid();
 }
 
-/* ══════════════════════════════════════════════════
-   MOBILE PANEL — paneles flotantes
-══════════════════════════════════════════════════ */
-function bindMobilePanel() {
-  const btnFilters = document.getElementById('mob-btn-filters');
-  const btnResults = document.getElementById('mob-btn-results');
-  const panelFilters = document.getElementById('filters-panel');
-  const panelResults = document.getElementById('results-panel');
-  const overlays = document.querySelectorAll('.panel-overlay');
-
-  function openPanel(panel) {
-    panel.classList.add('is-open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeAll() {
-    panelFilters.classList.remove('is-open');
-    panelResults.classList.remove('is-open');
-    document.body.style.overflow = '';
-  }
-
-  if (btnFilters) btnFilters.addEventListener('click', () => openPanel(panelFilters));
-  if (btnResults) btnResults.addEventListener('click', () => openPanel(panelResults));
-
-  overlays.forEach(o => o.addEventListener('click', closeAll));
-
-  /* Close buttons inside panels */
-  document.querySelectorAll('[data-close-panel]').forEach(btn => {
-    btn.addEventListener('click', closeAll);
-  });
+/**
+ * clearFilterCat(cat) — limpia UNA categoría.
+ * Llamado desde los botones "Quitar filtro" de cada sección.
+ */
+function clearFilterCat(cat) {
+  state.filters[cat] = new Set();
+  syncFilterUI();
+  if (cat === 'region') highlightSkeletonRegions(new Set());
+  if (cat === 'patologia' && state.view === 'patologia') renderPatologyGrid();
+  renderResults();
+  updateActiveFiltersBar();
 }
