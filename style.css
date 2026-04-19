@@ -1083,3 +1083,106 @@ p { font-size: clamp(0.95rem, 1.5vw, 1.05rem); }
   .nav, .ticker, .hero__scroll, .hero__viewer { display: none !important; }
   body { background: white; color: black; }
 }
+
+/* ============================================================
+   VISUALIZADOR INTERACTIVO (Exploración)
+   ============================================================ */
+
+:root {
+  /* Variables específicas para el panel de exploración */
+  --ex-bg:       #1C160F;
+  --ex-surf:     #241C13;
+  --ex-surf2:    #2E2418;
+  --ex-bord:     #3D3020;
+  --ex-txt:      #EDE6D3;
+  --ex-txt2:     #A8977E;
+  --ex-txt3:     #6B5A43;
+  --nav-h:       58px;
+  --top-h:       50px;
+}
+
+/* Contenedor Principal */
+.expl-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding-top: var(--nav-h);
+  background: var(--ex-bg);
+}
+
+.expl-topbar {
+  flex: 0 0 var(--top-h);
+  background: var(--ex-surf);
+  border-bottom: 1.5px solid var(--ex-bord);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 0 1rem;
+  z-index: 20;
+}
+
+.expl-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden; /* Evita scroll doble */
+}
+
+/* Paneles Laterales y Central */
+.expl-filters {
+  flex: 0 0 clamp(190px, 19vw, 255px);
+  overflow-y: auto;
+  background: var(--ex-surf);
+  border-right: 1.5px solid var(--ex-bord);
+  padding: 1.1rem .875rem;
+}
+
+.expl-center {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.expl-results {
+  flex: 0 0 clamp(230px, 22vw, 295px);
+  overflow-y: auto;
+  background: var(--ex-surf);
+  border-left: 1.5px solid var(--ex-bord);
+  padding: 1rem .875rem;
+}
+
+/* Estilos del Esqueleto (SVG) */
+.skeleton-svg-wrap { width: 100%; max-width: 290px; }
+.skel-region { cursor: pointer; transition: all .2s ease; }
+.skel-region:hover { filter: drop-shadow(0 0 8px var(--cyan)); }
+.region--active { filter: drop-shadow(0 0 12px var(--amber)); }
+
+/* Grid de Patologías (Vista B) */
+#patology-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.patol-card {
+  background: var(--ex-surf2);
+  border: 2px solid var(--ex-bord);
+  padding: 1.5rem;
+  border-radius: var(--radius-card);
+  text-align: center;
+  transition: all 0.2s var(--ease-snap);
+}
+
+.patol-card.is-active {
+  border-color: var(--patol-color);
+  box-shadow: 0 0 15px var(--patol-color);
+}
+
+/* Responsive para el visualizador */
+@media (max-width: 1024px) {
+  .expl-body { flex-direction: column; overflow-y: auto; }
+  .expl-filters, .expl-results { width: 100%; flex: none; border: none; }
+}
