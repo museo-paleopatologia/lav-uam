@@ -3,862 +3,585 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Museo Virtual de Paleopatología — Explora el registro patológico del pasado a través de colecciones osteológicas interactivas." />
-  <title>OsteoVirtual · Museo de Paleopatología</title>
+  <meta name="description" content="Museo virtual de paleopatolog&iacute;a. Archivo cient&iacute;fico interactivo de colecci&oacute;n osteol&oacute;gica. TFG &middot; UAM." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>OsteoVirtual &middot; Museo de Paleopatolog&iacute;a</title>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600;1,700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Model Viewer -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-
-  <!-- GSAP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 
-  <!-- Global styles -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Page-specific overrides -->
-  <style>
-    /* ── Hero decorative noise ── */
-    .hero__noise {
-      position: absolute;
-      inset: 0;
-      opacity: 0.025;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 200px 200px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ── Diagonal accent bar ── */
-    .hero__diagonal {
-      position: absolute;
-      top: 0; right: -80px;
-      width: 55%;
-      height: 100%;
-      background: linear-gradient(165deg, rgba(0,229,255,0.04) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ── Intro text highlight ── */
-    .hero__highlight {
-      background: var(--cyan);
-      color: var(--charcoal);
-      padding: 0 0.2em;
-      display: inline;
-    }
-
-    /* ── Quick-access bar below hero ── */
-    .quickbar {
-      background: var(--charcoal);
-      border-bottom: var(--border-brutal);
-      padding-block: var(--sp-sm);
-    }
-
-    .quickbar__inner {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-md);
-      flex-wrap: wrap;
-      max-width: 1280px;
-      margin-inline: auto;
-      padding-inline: var(--sp-sm);
-    }
-
-    .quickbar__label {
-      font-family: var(--font-accent);
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: var(--fossil);
-      white-space: nowrap;
-    }
-
-    .quickbar__chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      flex: 1;
-    }
-
-    .chip {
-      font-family: var(--font-accent);
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 0.28rem 0.7rem;
-      border-radius: 3px;
-      border: 1.5px solid;
-      transition: all 0.15s ease;
-      cursor: pointer;
-      color: var(--bone);
-      border-color: rgba(245,240,232,0.25);
-    }
-
-    .chip:hover {
-      background: rgba(245,240,232,0.12);
-      border-color: rgba(245,240,232,0.5);
-    }
-
-    .chip--cyan  { color: var(--cyan);  border-color: rgba(0,229,255,0.4); }
-    .chip--coral { color: var(--coral); border-color: rgba(255,77,109,0.4); }
-    .chip--acid  { color: var(--acid);  border-color: rgba(198,232,0,0.4); }
-
-    /* ── Teaser strip ── */
-    .teaser {
-      background: var(--ivory);
-      border-bottom: var(--border-brutal);
-      padding-block: var(--sp-2xl);
-    }
-
-    .teaser__grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--sp-xl);
-      align-items: center;
-    }
-
-    .teaser__media {
-      border: var(--border-brutal);
-      box-shadow: var(--shadow-brutal-lg);
-      border-radius: var(--radius-card);
-      overflow: hidden;
-      aspect-ratio: 4/3;
-      background: var(--charcoal);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .teaser__media-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      color: var(--fossil);
-      font-family: var(--font-accent);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-
-    .teaser__badge {
-      position: absolute;
-      top: var(--sp-sm);
-      left: var(--sp-sm);
-      background: var(--coral);
-      color: var(--bone);
-      font-family: var(--font-accent);
-      font-weight: 800;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 0.25rem 0.6rem;
-      border: var(--border-brutal);
-      box-shadow: var(--shadow-brutal);
-    }
-
-    .teaser__text .section-header__label { margin-bottom: 0.5rem; }
-
-    .teaser__list {
-      margin-block: var(--sp-md);
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .teaser__list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      font-size: 0.9rem;
-      color: #5a4a38;
-    }
-
-    .teaser__list li::before {
-      content: '→';
-      font-weight: 700;
-      color: var(--garnet);
-      flex-shrink: 0;
-      margin-top: 0.1em;
-    }
-
-    @media (max-width: 768px) {
-      .teaser__grid { grid-template-columns: 1fr; }
-      .quickbar__inner { flex-direction: column; align-items: flex-start; }
-    }
-
-    /* ── CTA final ── */
-    .cta-section {
-      background: var(--bone);
-      text-align: center;
-      padding-block: var(--sp-2xl);
-      border-top: var(--border-brutal);
-    }
-
-    .cta-section h2 {
-      max-width: 16ch;
-      margin-inline: auto;
-      margin-bottom: var(--sp-sm);
-    }
-
-    .cta-section p {
-      max-width: 44ch;
-      margin-inline: auto;
-      color: #7a6a55;
-      margin-bottom: var(--sp-lg);
-    }
-
-    .cta-section__buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--sp-sm);
-      justify-content: center;
-    }
-
-    /* ── Skeleton SVG illustration ── */
-    .skel-svg { filter: brightness(0.85); }
-  </style>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════
-       NAVIGATION
-  ═══════════════════════════════════════════ -->
-  <header class="nav" role="banner">
-    <div class="nav__inner">
-      <a href="index.html" class="nav__logo" aria-label="OsteoVirtual inicio">
-        <div class="nav__logo-icon" aria-hidden="true">𝕆</div>
-        OsteoVirtual
-      </a>
+<!-- ══════════════════════════════════════════ NAV ══════════════════════════════════════════ -->
+<header class="nav" id="nav" role="banner">
+  <div class="nav__inner">
 
-      <button class="nav__toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">
-        <span></span><span></span><span></span>
-      </button>
+    <a href="index.html" class="nav__logo" aria-label="OsteoVirtual &mdash; inicio">
+      <div class="nav__logo-mark" aria-hidden="true">&#120134;</div>
+      <div>
+        <span class="nav__logo-name">OsteoVirtual</span>
+        <span class="nav__logo-sub">Paleopatolog&iacute;a &middot; UAM</span>
+      </div>
+    </a>
 
-      <nav id="navLinks" class="nav__links" role="navigation" aria-label="Navegación principal">
-        <a href="exploracion.html" class="nav__link">Exploración</a>
-        <a href="coleccion.html"   class="nav__link">Colección</a>
-        <a href="ficha-maestra.html" class="nav__link">Fichas</a>
-        <a href="#modulos" class="btn btn--primary" style="margin-left:0.5rem;">Explorar →</a>
-      </nav>
-    </div>
-  </header>
+    <button class="nav__toggle" id="navToggle"
+      aria-label="Abrir men&uacute;" aria-expanded="false" aria-controls="navLinks">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav id="navLinks" class="nav__links" role="navigation" aria-label="Navegaci&oacute;n principal">
+      <a href="exploracion.html" class="nav__link">Exploraci&oacute;n</a>
+      <a href="coleccion.html"   class="nav__link">Colecci&oacute;n</a>
+      <a href="#educational"     class="nav__link">Recursos</a>
+      <a href="#news"            class="nav__link">Actualidad</a>
+      <a href="exploracion.html" class="btn btn--cyan nav__cta">Explorar &rarr;</a>
+    </nav>
+
+  </div>
+</header>
 
 
-  <!-- ═══════════════════════════════════════════
-       HERO
-  ═══════════════════════════════════════════ -->
-  <main id="main-content">
-  <section class="hero container" aria-labelledby="hero-heading">
-    <div class="hero__noise" aria-hidden="true"></div>
-    <div class="hero__diagonal" aria-hidden="true"></div>
+<main id="main-content">
 
-    <!-- Left: Copy -->
+  <!-- ══════════════════════════════════════════ HERO ══════════════════════════════════════════ -->
+  <section class="hero container" id="hero" aria-labelledby="hero-title">
+    <div class="hero__grid-lines" aria-hidden="true"></div>
+
     <div class="hero__content">
-      <p class="hero__eyebrow anim-fade-up">Museo Virtual · Paleopatología</p>
+      <p class="hero__eyebrow">Museo Virtual &middot; Paleopatolog&iacute;a</p>
 
-      <h1 id="hero-heading" class="hero__title anim-fade-up anim-delay-1">
-        Los huesos<br>
-        <em>hablan.</em>
-        <span class="hero__title-accent">¿Sabes escucharlos?</span>
+      <h1 class="hero__title" id="hero-title">
+        Los huesos
+        <span class="hero__title-em">recuerdan.</span>
+        <span class="hero__title-accent">Colecci&oacute;n osteol&oacute;gica digital &middot; UAM</span>
       </h1>
 
-      <p class="hero__desc anim-fade-up anim-delay-2">
-        Un museo digital de <span class="hero__highlight">paleopatología</span> donde cada pieza osteológica cuenta la historia clínica de individuos que vivieron hace siglos. Explora, aprende, investiga.
+      <p class="hero__desc">
+        Un archivo cient&iacute;fico interactivo donde cada lesi&oacute;n &oacute;sea documenta siglos de historia cl&iacute;nica.
+        Explora, filtra, investiga.
       </p>
 
-      <div class="hero__cta-group anim-fade-up anim-delay-3">
-        <a href="exploracion.html" class="btn btn--gradient" aria-label="Iniciar exploración anatómica">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Comenzar exploración
-        </a>
-        <a href="coleccion.html" class="btn btn--secondary">
-          Ver colección
-        </a>
+      <div class="hero__ctas">
+        <a href="exploracion.html?view=anatomia" class="btn btn--primary">Iniciar exploraci&oacute;n</a>
+        <a href="coleccion.html"                 class="btn btn--ghost">Ver colecci&oacute;n</a>
       </div>
 
-      <div class="hero__stats anim-fade-up anim-delay-4">
-        <div class="stat">
-          <span class="stat__num">+120</span>
+      <div class="hero__stats" role="list" aria-label="Estad&iacute;sticas del museo">
+        <div class="stat" role="listitem">
+          <span class="stat__num" data-count="120">0</span>
           <span class="stat__label">Piezas catalogadas</span>
         </div>
-        <div class="stat">
-          <span class="stat__num">34</span>
-          <span class="stat__label">Patologías documentadas</span>
+        <div class="stat" role="listitem">
+          <span class="stat__num" data-count="34">0</span>
+          <span class="stat__label">Patolog&iacute;as documentadas</span>
         </div>
-        <div class="stat">
-          <span class="stat__num">3</span>
-          <span class="stat__label">Módulos interactivos</span>
+        <div class="stat" role="listitem">
+          <span class="stat__num" data-count="3">0</span>
+          <span class="stat__label">M&oacute;dulos interactivos</span>
         </div>
       </div>
     </div>
 
-    <!-- Right: 3D Viewer -->
-    <div class="hero__viewer anim-fade-up anim-delay-2" aria-label="Visor 3D de cráneo osteológico">
-      <div class="viewer-frame">
-        <!-- model-viewer se activa cuando tengas un .glb -->
-        <!--
-        <model-viewer
-          src="assets/models/skull-base.glb"
-          alt="Cráneo humano — vista anterior"
-          auto-rotate
-          camera-controls
-          shadow-intensity="1"
-          exposure="0.8"
-          environment-image="neutral"
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-          loading="eager">
-        </model-viewer>
-        -->
+    <div class="hero__viewer" aria-label="Visor osteol&oacute;gico">
+      <div class="hero__viewer-frame">
+        <span class="hero__viewer-badge">Interactivo</span>
 
-        <!-- Placeholder SVG hasta tener el modelo 3D -->
-        <div class="skeleton-placeholder" aria-hidden="true">
-          <svg class="skel-svg" width="260" height="340" viewBox="0 0 260 340" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Skull -->
-            <ellipse cx="130" cy="72" rx="62" ry="58" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2.5"/>
-            <!-- Eye sockets -->
-            <ellipse cx="107" cy="75" rx="18" ry="14" fill="#2A1F0E"/>
-            <ellipse cx="153" cy="75" rx="18" ry="14" fill="#2A1F0E"/>
-            <!-- Nasal -->
-            <path d="M123 96 L130 108 L137 96" fill="#2A1F0E"/>
-            <!-- Teeth row -->
-            <rect x="108" y="115" width="44" height="10" rx="2" fill="#F5F0E8" stroke="#2A1F0E" stroke-width="1.5"/>
-            <line x1="120" y1="115" x2="120" y2="125" stroke="#2A1F0E" stroke-width="1"/>
-            <line x1="130" y1="115" x2="130" y2="125" stroke="#2A1F0E" stroke-width="1"/>
-            <line x1="140" y1="115" x2="140" y2="125" stroke="#2A1F0E" stroke-width="1"/>
-            <!-- Mandible -->
-            <path d="M100 122 Q130 145 160 122" stroke="#2A1F0E" stroke-width="2.5" fill="none"/>
-            <!-- Spine -->
-            <rect x="123" y="148" width="14" height="12" rx="2" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2"/>
-            <rect x="123" y="164" width="14" height="12" rx="2" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2"/>
-            <rect x="123" y="180" width="14" height="12" rx="2" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2"/>
-            <rect x="121" y="196" width="18" height="13" rx="2" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2"/>
-            <rect x="121" y="213" width="18" height="13" rx="2" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2"/>
-            <!-- Ribcage -->
-            <path d="M130 155 Q90 168 85 195 Q90 210 130 212" stroke="#2A1F0E" stroke-width="2" fill="none"/>
-            <path d="M130 155 Q170 168 175 195 Q170 210 130 212" stroke="#2A1F0E" stroke-width="2" fill="none"/>
-            <path d="M128 162 Q94 172 92 190" stroke="#2A1F0E" stroke-width="1.5" fill="none"/>
-            <path d="M132 162 Q166 172 168 190" stroke="#2A1F0E" stroke-width="1.5" fill="none"/>
-            <path d="M127 170 Q97 178 96 198" stroke="#2A1F0E" stroke-width="1.5" fill="none"/>
-            <path d="M133 170 Q163 178 164 198" stroke="#2A1F0E" stroke-width="1.5" fill="none"/>
-            <!-- Pelvis -->
-            <path d="M112 230 Q80 238 78 260 Q80 275 130 278 Q180 275 182 260 Q180 238 148 230 Z" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2.5"/>
-            <ellipse cx="130" cy="255" rx="16" ry="13" fill="#2A1F0E" opacity="0.15"/>
-            <!-- Left femur -->
-            <path d="M100 278 Q88 295 85 330" stroke="#2A1F0E" stroke-width="6" stroke-linecap="round"/>
-            <circle cx="97" cy="282" r="6" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2"/>
-            <!-- Right femur -->
-            <path d="M160 278 Q172 295 175 330" stroke="#2A1F0E" stroke-width="6" stroke-linecap="round"/>
-            <circle cx="163" cy="282" r="6" fill="#EDE6D3" stroke="#2A1F0E" stroke-width="2"/>
-            <!-- Lesion highlight (paleopatológica) -->
-            <circle cx="148" cy="278" r="8" fill="none" stroke="#FF4D6D" stroke-width="2" stroke-dasharray="3 2" opacity="0.9"/>
-            <circle cx="148" cy="278" r="3" fill="#FF4D6D" opacity="0.7"/>
-            <!-- Left humerus -->
-            <path d="M100 152 Q72 165 68 200" stroke="#2A1F0E" stroke-width="5" stroke-linecap="round"/>
-            <!-- Right humerus -->
-            <path d="M160 152 Q188 165 192 200" stroke="#2A1F0E" stroke-width="5" stroke-linecap="round"/>
-            <!-- Left radius/ulna -->
-            <path d="M68 200 Q60 220 58 245" stroke="#2A1F0E" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M68 200 Q72 222 74 245" stroke="#2A1F0E" stroke-width="3" stroke-linecap="round"/>
-            <!-- Right radius/ulna -->
-            <path d="M192 200 Q200 220 202 245" stroke="#2A1F0E" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M192 200 Q188 222 186 245" stroke="#2A1F0E" stroke-width="3" stroke-linecap="round"/>
+        <div class="hero__viewer-inner">
+          <svg class="hero__skeleton-svg"
+            width="220" height="320" viewBox="0 0 280 420"
+            fill="none" xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true">
+            <ellipse cx="140" cy="55" rx="50" ry="46" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <ellipse cx="122" cy="60" rx="13" ry="10" fill="#111"/>
+            <ellipse cx="158" cy="60" rx="13" ry="10" fill="#111"/>
+            <path d="M127 78 L140 90 L153 78" fill="#111"/>
+            <rect x="120" y="96" width="40" height="7" rx="2" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1"/>
+            <path d="M115 103 Q140 118 165 103" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <rect x="132" y="130" width="16" height="10" rx="2" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <rect x="132" y="144" width="16" height="10" rx="2" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <rect x="132" y="158" width="16" height="10" rx="2" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <rect x="130" y="172" width="20" height="11" rx="2" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <rect x="130" y="187" width="20" height="11" rx="2" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <path d="M132 138 Q95 148 88 168"  stroke="#3d3d3d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M132 150 Q92 158 86 178"  stroke="#3d3d3d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M132 162 Q90 170 85 190"  stroke="#3d3d3d" stroke-width="2"   fill="none" stroke-linecap="round"/>
+            <path d="M148 138 Q185 148 192 168" stroke="#3d3d3d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M148 150 Q188 158 194 178" stroke="#3d3d3d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M148 162 Q190 170 195 190" stroke="#3d3d3d" stroke-width="2"   fill="none" stroke-linecap="round"/>
+            <path d="M140 127 Q116 122 98 126"  stroke="#3d3d3d" stroke-width="3"   fill="none" stroke-linecap="round"/>
+            <path d="M140 127 Q164 122 182 126" stroke="#3d3d3d" stroke-width="3"   fill="none" stroke-linecap="round"/>
+            <path d="M93  132 Q76  152 72  188" stroke="#3d3d3d" stroke-width="6"   fill="none" stroke-linecap="round"/>
+            <path d="M187 132 Q204 152 208 188" stroke="#3d3d3d" stroke-width="6"   fill="none" stroke-linecap="round"/>
+            <path d="M72 188 Q62 210 59 238"    stroke="#3d3d3d" stroke-width="4"   fill="none" stroke-linecap="round"/>
+            <path d="M72 188 Q76 212 77 238"    stroke="#3d3d3d" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M208 188 Q218 210 221 238" stroke="#3d3d3d" stroke-width="4"   fill="none" stroke-linecap="round"/>
+            <path d="M208 188 Q204 212 203 238" stroke="#3d3d3d" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M112 220 Q76 228 74 250 Q76 266 140 270 Q204 266 206 250 Q204 228 168 220 Z"
+              fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <circle cx="105" cy="271" r="7" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <circle cx="175" cy="271" r="7" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+            <path d="M105 278 Q93  310 91  348" stroke="#3d3d3d" stroke-width="8"   fill="none" stroke-linecap="round"/>
+            <path d="M175 278 Q187 310 189 348" stroke="#3d3d3d" stroke-width="8"   fill="none" stroke-linecap="round"/>
+            <ellipse cx="91"  cy="357" rx="9" ry="6" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.2"/>
+            <ellipse cx="189" cy="357" rx="9" ry="6" fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.2"/>
+            <path d="M90 363 Q85 394 83 428"    stroke="#3d3d3d" stroke-width="7"   fill="none" stroke-linecap="round"/>
+            <path d="M93 366 Q100 396 102 428"  stroke="#3d3d3d" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M190 363 Q195 394 197 428" stroke="#3d3d3d" stroke-width="7"   fill="none" stroke-linecap="round"/>
+            <path d="M187 366 Q180 396 178 428" stroke="#3d3d3d" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <!-- Marca de lesión patológica -->
+            <circle cx="168" cy="263" r="7" fill="none" stroke="#ff4d6d" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.9"/>
+            <circle cx="168" cy="263" r="2.5" fill="#ff4d6d" opacity="0.8"/>
           </svg>
-          <span style="color:#D4C9A8; font-size:0.7rem; text-align:center; padding:0 1rem; line-height:1.6;">
-            Vista anterior · Esqueleto humano adulto<br>
-            <span style="color:#00E5FF">● Lesión documentada</span>
-          </span>
-        </div>
 
-        <div class="viewer-frame__label">Vista A · Esqueleto completo</div>
-        <div class="viewer-frame__dot" aria-hidden="true">Interactivo</div>
+          <div class="hero__lesion-dot" aria-hidden="true"></div>
+          <span class="hero__viewer-label">Vista A &middot; Esqueleto completo</span>
+        </div>
       </div>
     </div>
 
-    <div class="hero__scroll" aria-hidden="true">Scroll</div>
+    <div class="hero__scroll-hint" aria-hidden="true">
+      Scroll
+      <span class="hero__scroll-line"></span>
+    </div>
   </section>
 
 
-  <!-- ═══════════════════════════════════════════
-       QUICK-ACCESS CHIPS
-  ═══════════════════════════════════════════ -->
-  <div class="quickbar" aria-label="Acceso rápido por categoría">
-    <div class="quickbar__inner">
-      <span class="quickbar__label">Acceso rápido</span>
-      <div class="quickbar__chips" role="list">
-        <a href="exploracion.html?view=anatomia" class="chip chip--cyan"  role="listitem">Anatomía</a>
-        <a href="exploracion.html?view=patologia" class="chip chip--coral" role="listitem">Traumatismos</a>
-        <a href="exploracion.html?view=patologia" class="chip chip--coral" role="listitem">Enfermedades infecciosas</a>
-        <a href="exploracion.html?view=patologia" class="chip chip--coral" role="listitem">Artropatías</a>
-        <a href="coleccion.html" class="chip chip--acid"  role="listitem">Colección digital</a>
-        <a href="coleccion.html#buscados"  class="chip chip--acid"  role="listitem">Piezas destacadas</a>
-        <a href="ficha-maestra.html" class="chip"  role="listitem">Fichas académicas</a>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ═══════════════════════════════════════════
-       TICKER
-  ═══════════════════════════════════════════ -->
+  <!-- ════════════════════════════════════════ TICKER ════════════════════════════════════════ -->
   <div class="ticker" aria-hidden="true">
     <div class="ticker__track">
-      <!-- Duplicamos para el loop continuo -->
-      <span class="ticker__item">Paleopatología</span>
-      <span class="ticker__item">Osteología Humana</span>
+      <span class="ticker__item">Paleopatolog&iacute;a</span>
+      <span class="ticker__item">Osteolog&iacute;a Humana</span>
       <span class="ticker__item">Cribra Orbitalia</span>
-      <span class="ticker__item">Hiperostosis Porótica</span>
-      <span class="ticker__item">Fractura Curada</span>
+      <span class="ticker__item">Hiperostosis Por&oacute;tica</span>
+      <span class="ticker__item">Fractura Consolidada</span>
       <span class="ticker__item">Osteomielitis</span>
-      <span class="ticker__item">Espina Bífida</span>
+      <span class="ticker__item">Trepanaci&oacute;n Craneal</span>
+      <span class="ticker__item">Mal de Pott</span>
       <span class="ticker__item">Marcadores de Actividad</span>
-      <span class="ticker__item">Trepanación Craneal</span>
       <span class="ticker__item">Hipoplasia del Esmalte</span>
-      <span class="ticker__item">TFG · Patrimonio Digital</span>
-      <!-- duplicado -->
-      <span class="ticker__item">Paleopatología</span>
-      <span class="ticker__item">Osteología Humana</span>
+      <span class="ticker__item">Espina B&iacute;fida</span>
+      <span class="ticker__item">Buikstra &amp; Ubelaker</span>
+      <span class="ticker__item">Paleopatolog&iacute;a</span>
+      <span class="ticker__item">Osteolog&iacute;a Humana</span>
       <span class="ticker__item">Cribra Orbitalia</span>
-      <span class="ticker__item">Hiperostosis Porótica</span>
-      <span class="ticker__item">Fractura Curada</span>
+      <span class="ticker__item">Hiperostosis Por&oacute;tica</span>
+      <span class="ticker__item">Fractura Consolidada</span>
       <span class="ticker__item">Osteomielitis</span>
-      <span class="ticker__item">Espina Bífida</span>
+      <span class="ticker__item">Trepanaci&oacute;n Craneal</span>
+      <span class="ticker__item">Mal de Pott</span>
       <span class="ticker__item">Marcadores de Actividad</span>
-      <span class="ticker__item">Trepanación Craneal</span>
       <span class="ticker__item">Hipoplasia del Esmalte</span>
-      <span class="ticker__item">TFG · Patrimonio Digital</span>
+      <span class="ticker__item">Espina B&iacute;fida</span>
+      <span class="ticker__item">Buikstra &amp; Ubelaker</span>
     </div>
   </div>
 
 
-  <!-- ═══════════════════════════════════════════
-       MÓDULOS DE NAVEGACIÓN  ← sección central
-  ═══════════════════════════════════════════ -->
-  <section class="modules section" id="modulos" aria-labelledby="modules-heading">
+  <!-- ════════════════════════════════════════ MÓDULOS ═══════════════════════════════════════ -->
+  <section class="modules section" id="modules" aria-labelledby="modules-title">
     <div class="container">
-
       <div class="modules__header">
-        <p class="modules__eyebrow">Elige tu punto de entrada</p>
-        <h2 id="modules-heading">Tres módulos.<br>Una sola pregunta: <em>¿qué pasó aquí?</em></h2>
+        <p class="section-label">Elige tu entrada</p>
+        <h2 class="modules__title" id="modules-title">
+          Tres m&oacute;dulos.<br>
+          Una pregunta: <em>&iquest;qu&eacute; ocurri&oacute; aqu&iacute;?</em>
+        </h2>
+        <p class="modules__subtitle">
+          Accede por regi&oacute;n anat&oacute;mica, por diagn&oacute;stico patol&oacute;gico o directamente al cat&aacute;logo completo.
+        </p>
       </div>
 
       <div class="modules__grid" role="list">
 
-        <!-- ── MÓDULO 1: Exploración Anatómica ── -->
-        <a href="exploracion.html?view=anatomia"
-           class="mod-card mod-card--anatom"
-           role="listitem"
-           aria-label="Módulo de Exploración Anatómica">
-          <div class="mod-card__banner" aria-hidden="true"></div>
-          <div class="mod-card__body">
-            <div class="mod-card__icon-wrap" aria-hidden="true">🦴</div>
-            <p class="mod-card__num">Módulo 01</p>
-            <h3 class="mod-card__title">Exploración<br>Anatómica</h3>
-            <p class="mod-card__desc">
-              Navega por un esqueleto humano interactivo. Haz clic sobre cualquier región ósea para filtrar las piezas de la colección y descubrir las patologías asociadas.
-            </p>
-            <div class="mod-card__tags">
-              <span class="tag">Esqueleto interactivo</span>
-              <span class="tag">Filtro por región</span>
-              <span class="tag">Vista anatómica</span>
-            </div>
+        <a href="exploracion.html?view=anatomia" class="mod-card mod-card--anatom" role="listitem" aria-label="Exploraci&oacute;n anat&oacute;mica">
+          <p class="mod-card__num">01</p>
+          <div class="mod-card__icon" aria-hidden="true">&#129456;</div>
+          <h3 class="mod-card__title">Exploraci&oacute;n<br>Anat&oacute;mica</h3>
+          <p class="mod-card__desc">Navega un esqueleto interactivo. Haz clic sobre cualquier regi&oacute;n &oacute;sea para filtrar las piezas y descubrir las patolog&iacute;as asociadas.</p>
+          <div class="mod-card__tags">
+            <span class="tag">Esqueleto SVG</span>
+            <span class="tag">Filtro por regi&oacute;n</span>
+            <span class="tag">Multi-select</span>
           </div>
-          <div class="mod-card__footer">
-            <span class="mod-card__cta">Explorar anatomía</span>
-            <span class="mod-card__arrow" aria-hidden="true">↗</span>
+          <div class="mod-card__cta">
+            <span>Explorar anatom&iacute;a</span>
+            <span class="mod-card__arrow" aria-hidden="true">&#8599;</span>
           </div>
         </a>
 
-        <!-- ── MÓDULO 2: Exploración Patológica ── -->
-        <a href="exploracion.html?view=patologia"
-           class="mod-card mod-card--patol"
-           role="listitem"
-           aria-label="Módulo de Exploración Patológica">
-          <div class="mod-card__banner" aria-hidden="true"></div>
-          <div class="mod-card__body">
-            <div class="mod-card__icon-wrap" aria-hidden="true">🔬</div>
-            <p class="mod-card__num">Módulo 02</p>
-            <h3 class="mod-card__title">Exploración<br>Patológica</h3>
-            <p class="mod-card__desc">
-              Filtra por tipo de patología: traumatismos, infecciones, alteraciones congénitas, marcadores de actividad. Visualiza un grid dinámico de evidencias documentadas.
-            </p>
-            <div class="mod-card__tags">
-              <span class="tag">Grid de patologías</span>
-              <span class="tag">Filtros avanzados</span>
-              <span class="tag">Cards dinámicas</span>
-            </div>
+        <a href="exploracion.html?view=patologia" class="mod-card mod-card--patol" role="listitem" aria-label="Exploraci&oacute;n patol&oacute;gica">
+          <p class="mod-card__num">02</p>
+          <div class="mod-card__icon" aria-hidden="true">&#128300;</div>
+          <h3 class="mod-card__title">Exploraci&oacute;n<br>Patol&oacute;gica</h3>
+          <p class="mod-card__desc">Filtra por tipo de patolog&iacute;a: traumatismos, infecciones, alteraciones metab&oacute;licas, marcadores de actividad. Grid din&aacute;mico de evidencias.</p>
+          <div class="mod-card__tags">
+            <span class="tag">Grid patolog&iacute;as</span>
+            <span class="tag">Filtros OR+AND</span>
+            <span class="tag">Cards din&aacute;micas</span>
           </div>
-          <div class="mod-card__footer">
-            <span class="mod-card__cta">Explorar patologías</span>
-            <span class="mod-card__arrow" aria-hidden="true">↗</span>
+          <div class="mod-card__cta">
+            <span>Explorar patolog&iacute;as</span>
+            <span class="mod-card__arrow" aria-hidden="true">&#8599;</span>
           </div>
         </a>
 
-        <!-- ── MÓDULO 3: Colección ── -->
-        <a href="coleccion.html"
-           class="mod-card mod-card--colec"
-           role="listitem"
-           aria-label="Módulo de Colección Digital">
-          <div class="mod-card__banner" aria-hidden="true"></div>
-          <div class="mod-card__body">
-            <div class="mod-card__icon-wrap" aria-hidden="true">🏛️</div>
-            <p class="mod-card__num">Módulo 03</p>
-            <h3 class="mod-card__title">Colección<br>Digital</h3>
-            <p class="mod-card__desc">
-              Accede al catálogo completo. Busca piezas por número de inventario, yacimiento o diagnóstico. Consulta fichas estándar o sumérgete en las fichas maestras con scrollytelling.
-            </p>
-            <div class="mod-card__tags">
-              <span class="tag">Buscador</span>
-              <span class="tag">+120 piezas</span>
-              <span class="tag">Fichas académicas</span>
-            </div>
+        <a href="coleccion.html" class="mod-card mod-card--colec" role="listitem" aria-label="Colecci&oacute;n digital">
+          <p class="mod-card__num">03</p>
+          <div class="mod-card__icon" aria-hidden="true">&#127963;</div>
+          <h3 class="mod-card__title">Colecci&oacute;n<br>Digital</h3>
+          <p class="mod-card__desc">Cat&aacute;logo completo. Busca por inventario, yacimiento o diagn&oacute;stico. Consulta fichas est&aacute;ndar o s&uacute;merjete en las fichas maestras con scrollytelling.</p>
+          <div class="mod-card__tags">
+            <span class="tag">Buscador</span>
+            <span class="tag">+120 piezas</span>
+            <span class="tag">Fichas acad&eacute;micas</span>
           </div>
-          <div class="mod-card__footer">
-            <span class="mod-card__cta">Ver colección</span>
-            <span class="mod-card__arrow" aria-hidden="true">↗</span>
+          <div class="mod-card__cta">
+            <span>Ver colecci&oacute;n</span>
+            <span class="mod-card__arrow" aria-hidden="true">&#8599;</span>
           </div>
         </a>
 
-      </div><!-- /.modules__grid -->
-    </div><!-- /.container -->
+      </div>
+    </div>
   </section>
 
 
-  <!-- ═══════════════════════════════════════════
-       FEATURES: Por qué este museo
-  ═══════════════════════════════════════════ -->
-  <section class="features section" aria-labelledby="features-heading">
+  <!-- ══════════════════════════════════ RECURSOS EDUCATIVOS ════════════════════════════════ -->
+  <section class="educational section" id="educational" aria-labelledby="edu-title">
     <div class="container">
-      <div class="section-header">
+
+      <div class="educational__header">
         <div>
-          <p class="section-header__label">Por qué este proyecto</p>
-          <h2 id="features-heading">Ciencia, tecnología<br>y patrimonio en un solo espacio</h2>
+          <p class="section-label">Para aprender</p>
+          <h2 class="educational__title" id="edu-title">Recursos<br>educativos</h2>
         </div>
-        <a href="ficha-maestra.html" class="btn btn--secondary">Ver ejemplo de ficha →</a>
+        <a href="#" class="btn btn--ghost">Ver todos &rarr;</a>
       </div>
 
-      <div class="features__grid">
-        <div class="feat-card">
-          <div class="feat-card__num">01</div>
-          <h4>Acceso abierto</h4>
-          <p>Todo el fondo osteológico disponible gratuitamente, sin barreras institucionales ni desplazamientos.</p>
-        </div>
-        <div class="feat-card">
-          <div class="feat-card__num">02</div>
-          <h4>Doble formato de ficha</h4>
-          <p>Ficha estándar para consulta académica rápida y ficha maestra con scrollytelling inmersivo para divulgación.</p>
-        </div>
-        <div class="feat-card">
-          <div class="feat-card__num">03</div>
-          <h4>Visualización 3D</h4>
-          <p>Modelos osteológicos renderizados con model-viewer. Rotación libre, zoom y anotaciones superpuestas.</p>
-        </div>
-        <div class="feat-card">
-          <div class="feat-card__num">04</div>
-          <h4>Diseñado para móvil</h4>
-          <p>Interfaz mobile-first con navegación táctil optimizada. Funciona en cualquier dispositivo y resolución.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+      <div class="educational__grid" role="list">
 
-
-  <!-- ═══════════════════════════════════════════
-       TEASER: Ficha maestra / Scrollytelling
-  ═══════════════════════════════════════════ -->
-  <section class="teaser" aria-labelledby="teaser-heading">
-    <div class="container">
-      <div class="teaser__grid">
-
-        <div class="teaser__media" aria-label="Vista previa de ficha maestra">
-          <div class="teaser__badge">Nuevo</div>
-          <!-- Placeholder visual para ficha maestra -->
-          <div class="teaser__media-placeholder">
-            <svg width="140" height="90" viewBox="0 0 140 90" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <!-- Simula una "ficha" de scrollytelling -->
-              <rect x="10" y="10" width="55" height="70" rx="3" fill="#EDE6D3" stroke="#D4C9A8" stroke-width="1.5"/>
-              <rect x="15" y="18" width="35" height="4" rx="1" fill="#D4C9A8"/>
-              <rect x="15" y="26" width="42" height="2.5" rx="1" fill="#D4C9A8" opacity="0.6"/>
-              <rect x="15" y="32" width="38" height="2.5" rx="1" fill="#D4C9A8" opacity="0.6"/>
-              <rect x="15" y="38" width="40" height="2.5" rx="1" fill="#D4C9A8" opacity="0.6"/>
-              <rect x="15" y="50" width="44" height="20" rx="2" fill="#2A1F0E" opacity="0.7"/>
-              <rect x="75" y="15" width="55" height="70" rx="3" fill="#EDE6D3" stroke="#00E5FF" stroke-width="2"/>
-              <rect x="80" y="23" width="35" height="4" rx="1" fill="#2A1F0E"/>
-              <circle cx="102" cy="52" r="16" fill="#2A1F0E" opacity="0.85"/>
-              <circle cx="102" cy="52" r="8" fill="none" stroke="#FF4D6D" stroke-width="1.5" stroke-dasharray="2 1.5"/>
-              <rect x="80" y="72" width="42" height="6" rx="1" fill="#C6E800" opacity="0.7"/>
+        <a href="#" class="res-card res-card--glosario" role="listitem" aria-label="Glosario paleopatol&oacute;gico">
+          <div class="res-card__icon-wrap">
+            <svg class="res-card__icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
             </svg>
-            <span>Ficha maestra · Scrollytelling GSAP</span>
           </div>
-        </div>
+          <span class="res-card__label">Vocabulario</span>
+          <h3 class="res-card__title">Glosario Paleopatol&oacute;gico</h3>
+          <p class="res-card__desc">Terminolog&iacute;a estandarizada de diagn&oacute;stico osteol&oacute;gico con definiciones, referencias y ejemplos visuales.</p>
+          <span class="res-card__count">+240 t&eacute;rminos</span>
+        </a>
 
-        <div class="teaser__text">
-          <p class="section-header__label">Experiencia inmersiva</p>
-          <h2 id="teaser-heading">Fichas que narran,<br>no solo describen</h2>
-          <ul class="teaser__list">
-            <li>Parallax animado con GSAP ScrollTrigger al desplazarte</li>
-            <li>Imagen y texto aparecen sincronizados con el scroll</li>
-            <li>Modelo 3D integrado con anotaciones clínicas</li>
-            <li>Contexto arqueológico y diagnóstico diferencial</li>
-            <li>Versión estándar para imprimir o citar en trabajos académicos</li>
-          </ul>
-          <div style="display:flex; gap:var(--sp-sm); flex-wrap:wrap;">
-            <a href="ficha-maestra.html"   class="btn btn--gradient-coral">Ficha maestra →</a>
-            <a href="ficha-estandar.html"  class="btn btn--secondary">Ficha estándar</a>
+        <a href="#" class="res-card res-card--atlas" role="listitem" aria-label="Atlas osteol&oacute;gico">
+          <div class="res-card__icon-wrap">
+            <svg class="res-card__icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
           </div>
-        </div>
+          <span class="res-card__label">Referencia visual</span>
+          <h3 class="res-card__title">Atlas Osteol&oacute;gico</h3>
+          <p class="res-card__desc">Gu&iacute;a visual ilustrada de morfolog&iacute;a normal y patol&oacute;gica. Comparativas de referencia por regi&oacute;n anat&oacute;mica.</p>
+          <span class="res-card__count">6 regiones &middot; 90 l&aacute;minas</span>
+        </a>
+
+        <a href="#" class="res-card res-card--quiz" role="listitem" aria-label="Quizes de diagn&oacute;stico">
+          <div class="res-card__icon-wrap">
+            <svg class="res-card__icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <span class="res-card__label">Autoevaluaci&oacute;n</span>
+          <h3 class="res-card__title">Quizes de Diagn&oacute;stico</h3>
+          <p class="res-card__desc">Ejercicios de identificaci&oacute;n patol&oacute;gica con retroalimentaci&oacute;n inmediata. Dise&ntilde;ados para estudiantes de Antropolog&iacute;a y Medicina.</p>
+          <span class="res-card__count">12 ejercicios disponibles</span>
+        </a>
+
+        <a href="#" class="res-card res-card--metod" role="listitem" aria-label="Gu&iacute;as metodol&oacute;gicas">
+          <div class="res-card__icon-wrap">
+            <svg class="res-card__icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <line x1="8"  y1="6"  x2="21" y2="6"/>
+              <line x1="8"  y1="12" x2="21" y2="12"/>
+              <line x1="8"  y1="18" x2="21" y2="18"/>
+              <line x1="3"  y1="6"  x2="3.01" y2="6"/>
+              <line x1="3"  y1="12" x2="3.01" y2="12"/>
+              <line x1="3"  y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </div>
+          <span class="res-card__label">Protocolo</span>
+          <h3 class="res-card__title">Gu&iacute;as Metodol&oacute;gicas</h3>
+          <p class="res-card__desc">Protocolos de registro seg&uacute;n Buikstra &amp; Ubelaker (1994). Est&aacute;ndares internacionales para el an&aacute;lisis osteol&oacute;gico en contexto arqueol&oacute;gico.</p>
+          <span class="res-card__count">4 protocolos &middot; PDF descargable</span>
+        </a>
 
       </div>
     </div>
   </section>
 
 
-  <!-- ═══════════════════════════════════════════
-       HIGHLIGHT BAND (dark)
-  ═══════════════════════════════════════════ -->
-  <section class="highlight-band" aria-labelledby="hband-heading">
+  <!-- ═══════════════════════════════════════ NEWS FEED ══════════════════════════════════════ -->
+  <section class="news section" id="news" aria-labelledby="news-title">
     <div class="container">
-      <div class="highlight-band__inner">
 
-        <div class="highlight-band__text">
-          <span class="highlight-band__pill">TFG · Grado en Historia</span>
-          <h2 id="hband-heading">El pasado<br>vive en los huesos</h2>
-          <p>Este museo nació como Trabajo de Fin de Grado para democratizar el acceso al patrimonio osteológico y hacer la paleopatología accesible a investigadores, estudiantes y público general.</p>
-          <a href="#modulos" class="btn btn--gradient" style="margin-top:var(--sp-md);">Explorar ahora →</a>
+      <div class="news__header">
+        <div>
+          <p class="section-label">Actualidad cient&iacute;fica</p>
+          <h2 class="news__title" id="news-title">Hallazgos<br>recientes</h2>
         </div>
+        <a href="#" class="btn btn--ghost">Ver todo &rarr;</a>
+      </div>
 
-        <div class="highlight-band__cards">
-          <div class="mini-card">
-            <div class="mini-card__icon" aria-hidden="true">🧬</div>
-            <h4>Diagnóstico diferencial</h4>
-            <p>Cada pieza incluye diagnóstico primario y alternativas documentadas.</p>
+      <div class="news__grid">
+
+        <a href="#" class="news-feat" aria-label="Art&iacute;culo destacado">
+          <div class="news-feat__img">
+            <div class="news-feat__img-placeholder">
+              <svg class="news-feat__img-svg" width="90" height="130" viewBox="0 0 280 420" fill="none" aria-hidden="true">
+                <ellipse cx="140" cy="55" rx="50" ry="46" stroke="#555" stroke-width="1.5"/>
+                <ellipse cx="122" cy="60" rx="13" ry="10" fill="#444"/>
+                <ellipse cx="158" cy="60" rx="13" ry="10" fill="#444"/>
+                <rect x="132" y="130" width="16" height="10" rx="2" stroke="#555" stroke-width="1.5"/>
+                <rect x="132" y="144" width="16" height="10" rx="2" stroke="#555" stroke-width="1.5"/>
+                <path d="M132 138 Q95 148 88 168"  stroke="#555" stroke-width="2" fill="none"/>
+                <path d="M148 138 Q185 148 192 168" stroke="#555" stroke-width="2" fill="none"/>
+                <path d="M93 132 Q76 152 72 188"    stroke="#555" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M187 132 Q204 152 208 188" stroke="#555" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M112 220 Q76 228 74 250 Q76 266 140 270 Q204 266 206 250 Q204 228 168 220 Z" stroke="#555" stroke-width="1.5"/>
+                <path d="M105 278 Q93 310 91 348"   stroke="#555" stroke-width="7" fill="none" stroke-linecap="round"/>
+                <path d="M175 278 Q187 310 189 348" stroke="#555" stroke-width="7" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="news-feat__category">Nuevo hallazgo</span>
           </div>
-          <div class="mini-card">
-            <div class="mini-card__icon" aria-hidden="true">📍</div>
-            <h4>Procedencia verificada</h4>
-            <p>Yacimiento, UE, cuadro y nivel estratigráfico para cada individuo.</p>
+          <div class="news-feat__body">
+            <p class="news-feat__meta">Enero 2025 &middot; Yacimiento romano &middot; Caesaraugusta</p>
+            <h3 class="news-feat__title">
+              Osteomielitis hemat&oacute;gena en h&uacute;mero romano: evidencia de infecci&oacute;n cr&oacute;nica en un adulto masculino de Caesaraugusta
+            </h3>
+            <p class="news-feat__excerpt">
+              El an&aacute;lisis macro y microsc&oacute;pico del individuo OV-012 revela destrucci&oacute;n &oacute;sea cortical compatible con Staphylococcus sp. La pieza presenta involucro perif&eacute;rico con secuestro central y m&uacute;ltiples orificios de drenaje cloacal.
+            </p>
+            <span class="news-feat__link">Leer ficha maestra &rarr;</span>
           </div>
-          <div class="mini-card">
-            <div class="mini-card__icon" aria-hidden="true">📐</div>
-            <h4>Métricas osteométricas</h4>
-            <p>Tablas de medidas estandarizadas según protocolos Buikstra & Ubelaker.</p>
-          </div>
-          <div class="mini-card">
-            <div class="mini-card__icon" aria-hidden="true">🔗</div>
-            <h4>Referencias bibliográficas</h4>
-            <p>Cada ficha enlaza con la literatura científica más relevante.</p>
-          </div>
-        </div>
+        </a>
+
+        <a href="#" class="news-item" aria-label="Trepanaci&oacute;n neol&iacute;tica">
+          <p class="news-item__meta">Diciembre 2024 &middot; Prehistoria</p>
+          <h3 class="news-item__title">Supervivencia post-trepanaci&oacute;n: un cr&aacute;neo del Neol&iacute;tico con bordes remodelados en Los Millares</h3>
+          <p class="news-item__excerpt">La pieza OV-001 evidencia que el individuo sobrevivi&oacute; a&ntilde;os a la intervenci&oacute;n, con remodelaci&oacute;n &oacute;sea completa del borde quir&uacute;rgico.</p>
+        </a>
+
+        <a href="#" class="news-item" aria-label="Mal de Pott medieval">
+          <p class="news-item__meta">Noviembre 2024 &middot; Edad Media</p>
+          <h3 class="news-item__title">Mal de Pott en el monasterio de Suso: primer caso confirmado por an&aacute;lisis osteoarqueol&oacute;gico</h3>
+          <p class="news-item__excerpt">La deformidad angular T8-T9 del individuo OV-004 confirma tuberculosis &oacute;sea en el noreste peninsular durante el siglo XI.</p>
+        </a>
+
+        <a href="#" class="news-item" aria-label="Nuevas piezas de Rec&oacute;polis">
+          <p class="news-item__meta">Octubre 2024 &middot; Colecci&oacute;n</p>
+          <h3 class="news-item__title">Incorporadas 14 nuevas piezas de la necr&oacute;polis medieval de Rec&oacute;polis</h3>
+          <p class="news-item__excerpt">La campa&ntilde;a de verano 2024 ampl&iacute;a el cat&aacute;logo con materiales visigodos, incluyendo tres casos de patolog&iacute;a vertebral.</p>
+        </a>
 
       </div>
     </div>
   </section>
 
 
-  <!-- ═══════════════════════════════════════════
-       CTA FINAL
-  ═══════════════════════════════════════════ -->
-  <section class="cta-section" aria-labelledby="cta-heading">
-    <div class="container container--narrow">
-      <h2 id="cta-heading">¿Por dónde<br><em>quieres empezar?</em></h2>
-      <p>Elige un módulo y sumerge en el registro patológico del pasado. Sin cuentas, sin barreras, solo conocimiento.</p>
-      <div class="cta-section__buttons">
-        <a href="exploracion.html?view=anatomia"  class="btn btn--gradient">🦴 Exploración anatómica</a>
-        <a href="exploracion.html?view=patologia" class="btn btn--gradient-coral">🔬 Exploración patológica</a>
-        <a href="coleccion.html"                  class="btn btn--gradient-green">🏛️ Ver colección</a>
-      </div>
-    </div>
-  </section>
-
-  </main><!-- /#main-content -->
-
-
-  <!-- ═══════════════════════════════════════════
-       FOOTER
-  ═══════════════════════════════════════════ -->
-  <footer class="footer" role="contentinfo">
+  <!-- ══════════════════════════════════ HIGHLIGHT INSTITUCIONAL ═══════════════════════════ -->
+  <section class="highlight section" id="highlight" aria-labelledby="highlight-title">
     <div class="container">
-      <div class="footer__inner">
+      <div class="highlight__inner">
 
-        <div class="footer__brand">
-          <div class="nav__logo" style="color:var(--bone);">
-            <div class="nav__logo-icon" aria-hidden="true">𝕆</div>
-            OsteoVirtual
+        <div class="highlight__text">
+          <p class="highlight__kicker">Misi&oacute;n del proyecto</p>
+          <h2 class="highlight__title" id="highlight-title">
+            El pasado cl&iacute;nico<br>
+            <em>no deber&iacute;a estar</em><br>
+            en un caj&oacute;n.
+          </h2>
+          <p class="highlight__body">
+            OsteoVirtual naci&oacute; como TFG en la UAM con una convicci&oacute;n sencilla: el patrimonio osteol&oacute;gico es tambi&eacute;n historia m&eacute;dica, y esa historia pertenece a todos. Aqu&iacute; no hay barreras de acceso ni formularios de solicitud. Solo rigor cient&iacute;fico y apertura radical.
+          </p>
+          <a href="exploracion.html" class="btn btn--gradient">Empezar ahora &rarr;</a>
+        </div>
+
+        <div class="highlight__metrics">
+          <div class="metric">
+            <span class="metric__num metric__num--cyan">+120</span>
+            <span class="metric__label">Piezas catalogadas</span>
           </div>
-          <p>Museo virtual de paleopatología. Proyecto TFG desarrollado con tecnologías web abiertas y acceso libre al patrimonio osteológico.</p>
+          <div class="metric">
+            <span class="metric__num metric__num--acid">34</span>
+            <span class="metric__label">Patolog&iacute;as distintas</span>
+          </div>
+          <div class="metric">
+            <span class="metric__num metric__num--magenta">100%</span>
+            <span class="metric__label">Acceso libre</span>
+          </div>
+          <div class="metric">
+            <span class="metric__num metric__num--garnet">UAM</span>
+            <span class="metric__label">Respaldo institucional</span>
+          </div>
         </div>
 
-        <div class="footer__col">
-          <h4>Módulos</h4>
-          <ul>
-            <li><a href="exploracion.html?view=anatomia">Exploración anatómica</a></li>
-            <li><a href="exploracion.html?view=patologia">Exploración patológica</a></li>
-            <li><a href="coleccion.html">Colección digital</a></li>
-          </ul>
-        </div>
-
-        <div class="footer__col">
-          <h4>Fichas</h4>
-          <ul>
-            <li><a href="ficha-maestra.html">Ficha maestra</a></li>
-            <li><a href="ficha-estandar.html">Ficha estándar</a></li>
-            <li><a href="coleccion.html#buscados">Piezas destacadas</a></li>
-          </ul>
-        </div>
-
-        <div class="footer__col">
-          <h4>Proyecto</h4>
-          <ul>
-            <li><a href="#">Sobre el TFG</a></li>
-            <li><a href="#">Metodología</a></li>
-            <li><a href="#">Bibliografía</a></li>
-            <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
-          </ul>
-        </div>
-
-      </div>
-
-      <div class="footer__bottom">
-        <p>© 2025 OsteoVirtual · Trabajo de Fin de Grado · Uso académico y educativo</p>
-        <span class="footer__badge">
-          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>
-          GitHub Pages Ready
-        </span>
       </div>
     </div>
-  </footer>
+  </section>
+
+</main>
 
 
-  <!-- ═══════════════════════════════════════════
-       SCRIPTS
-  ═══════════════════════════════════════════ -->
-  <script>
-    /* ── Mobile nav toggle ── */
-    const toggle = document.getElementById('navToggle');
-    const links  = document.getElementById('navLinks');
+<!-- ══════════════════════════════════════════ FOOTER ═══════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="container">
 
-    toggle.addEventListener('click', () => {
-      const isOpen = links.classList.toggle('is-open');
-      toggle.setAttribute('aria-expanded', isOpen);
-      toggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
-      // Animate hamburger to X
-      const spans = toggle.querySelectorAll('span');
-      if (isOpen) {
-        spans[0].style.cssText = 'transform: translateY(7.5px) rotate(45deg)';
-        spans[1].style.cssText = 'opacity: 0; transform: scaleX(0)';
-        spans[2].style.cssText = 'transform: translateY(-7.5px) rotate(-45deg)';
-      } else {
-        spans.forEach(s => s.style.cssText = '');
-      }
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="footer__brand-logo" aria-label="OsteoVirtual inicio">
+          <div class="footer__brand-mark" aria-hidden="true">&#120134;</div>
+          <span class="footer__brand-name">OsteoVirtual</span>
+        </a>
+        <p class="footer__brand-desc">
+          Museo virtual de paleopatolog&iacute;a. TFG desarrollado en la UAM con tecnolog&iacute;as web abiertas y acceso libre al patrimonio osteol&oacute;gico.
+        </p>
+      </div>
+
+      <nav class="footer__col" aria-label="M&oacute;dulos">
+        <h3 class="footer__col-title">M&oacute;dulos</h3>
+        <ul>
+          <li><a href="exploracion.html?view=anatomia">Exploraci&oacute;n anat&oacute;mica</a></li>
+          <li><a href="exploracion.html?view=patologia">Exploraci&oacute;n patol&oacute;gica</a></li>
+          <li><a href="coleccion.html">Colecci&oacute;n digital</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Recursos">
+        <h3 class="footer__col-title">Recursos</h3>
+        <ul>
+          <li><a href="#">Glosario</a></li>
+          <li><a href="#">Atlas osteol&oacute;gico</a></li>
+          <li><a href="#">Quizes</a></li>
+          <li><a href="#">Metodolog&iacute;a</a></li>
+        </ul>
+      </nav>
+
+      <nav class="footer__col" aria-label="Proyecto">
+        <h3 class="footer__col-title">Proyecto</h3>
+        <ul>
+          <li><a href="#">Sobre el TFG</a></li>
+          <li><a href="#">Bibliograf&iacute;a</a></li>
+          <li><a href="#">Fichas maestras</a></li>
+          <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer__bottom">
+      <p class="footer__copy">&copy; 2025 OsteoVirtual &middot; TFG &middot; Universidad Aut&oacute;noma de Madrid &middot; Uso acad&eacute;mico</p>
+      <span class="footer__badge">GitHub Pages Ready</span>
+    </div>
+
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════════ JS ═══════════════════════════════════════════ -->
+<script>
+  /* Nav: estado scroll */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+
+  /* Nav: hamburger */
+  const toggle = document.getElementById('navToggle');
+  const links  = document.getElementById('navLinks');
+
+  toggle.addEventListener('click', () => {
+    const open = links.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open);
+    const [s1, s2, s3] = toggle.querySelectorAll('span');
+    if (open) {
+      s1.style.cssText = 'transform:translateY(6.5px) rotate(45deg)';
+      s2.style.cssText = 'opacity:0; transform:scaleX(0)';
+      s3.style.cssText = 'transform:translateY(-6.5px) rotate(-45deg)';
+    } else {
+      [s1, s2, s3].forEach(s => s.style.cssText = '');
+    }
+  });
+
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    links.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.querySelectorAll('span').forEach(s => s.style.cssText = '');
+  }));
+
+  /* Contadores animados */
+  function animateCount(el, target, duration = 1400) {
+    const start = performance.now();
+    const update = now => {
+      const p = Math.min((now - start) / duration, 1);
+      const e = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
+      el.textContent = target < 10 ? Math.round(e * target) : '+' + Math.round(e * target);
+      if (p < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }
+
+  const counterIO = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      animateCount(e.target, parseInt(e.target.dataset.count));
+      counterIO.unobserve(e.target);
     });
+  }, { threshold: 0.5 });
 
-    /* Close nav on link click (mobile) */
-    links.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        links.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.querySelectorAll('span').forEach(s => s.style.cssText = '');
+  document.querySelectorAll('[data-count]').forEach(el => counterIO.observe(el));
+
+  /* GSAP */
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* Entrance hero */
+    gsap.timeline({ defaults: { ease: 'power3.out' } })
+      .to('.hero__eyebrow', { opacity: 1, y: 0, duration: 0.6 }, 0.2)
+      .to('.hero__title',   { opacity: 1, y: 0, duration: 0.7 }, 0.4)
+      .to('.hero__desc',    { opacity: 1, y: 0, duration: 0.6 }, 0.6)
+      .to('.hero__ctas',    { opacity: 1, y: 0, duration: 0.5 }, 0.75)
+      .to('.hero__stats',   { opacity: 1, y: 0, duration: 0.5 }, 0.85)
+      .to('.hero__viewer',  { opacity: 1, x: 0, duration: 0.8 }, 0.3);
+
+    /* Scroll reveals */
+    const reveals = ['.mod-card', '.res-card', '.news-feat', '.news-item', '.metric'];
+    reveals.forEach(sel => {
+      gsap.from(sel, {
+        scrollTrigger: { trigger: sel, start: 'top 86%', toggleActions: 'play none none none' },
+        opacity: 0, y: 28, duration: 0.55, ease: 'power2.out', stagger: 0.1, clearProps: 'all',
       });
     });
 
-    /* ── Intersection Observer: fade-up on scroll ── */
-    const IO = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.style.animationPlayState = 'running';
-          IO.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12 });
-
-    document.querySelectorAll('.mod-card, .feat-card, .mini-card').forEach(el => {
-      el.style.opacity = '0';
-      el.style.animation = 'fade-up 0.55s var(--ease-out) both paused';
-      IO.observe(el);
+    /* Highlight: entrada lateral */
+    gsap.from('.highlight__title', {
+      scrollTrigger: { trigger: '.highlight', start: 'top 72%' },
+      opacity: 0, x: -30, duration: 0.7, ease: 'power3.out', clearProps: 'all',
     });
-
-    /* ── GSAP: stagger on mod-cards when in view ── */
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-        gsap.registerPlugin(ScrollTrigger);
-
-        /* Module cards stagger */
-        gsap.from('.mod-card', {
-          scrollTrigger: {
-            trigger: '.modules__grid',
-            start: 'top 80%',
-          },
-          y: 50,
-          opacity: 0,
-          duration: 0.6,
-          stagger: 0.15,
-          ease: 'power3.out',
-          clearProps: 'all'
-        });
-
-        /* Feature cards */
-        gsap.from('.feat-card', {
-          scrollTrigger: {
-            trigger: '.features__grid',
-            start: 'top 80%',
-          },
-          y: 40,
-          opacity: 0,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: 'power2.out',
-          clearProps: 'all'
-        });
-
-        /* Highlight band text */
-        gsap.from('.highlight-band__text', {
-          scrollTrigger: {
-            trigger: '.highlight-band',
-            start: 'top 70%',
-          },
-          x: -50,
-          opacity: 0,
-          duration: 0.7,
-          ease: 'power3.out',
-          clearProps: 'all'
-        });
-
-        gsap.from('.mini-card', {
-          scrollTrigger: {
-            trigger: '.highlight-band__cards',
-            start: 'top 75%',
-          },
-          y: 30,
-          opacity: 0,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: 'power2.out',
-          clearProps: 'all'
-        });
-      }
+    gsap.from('.highlight__metrics', {
+      scrollTrigger: { trigger: '.highlight__metrics', start: 'top 80%' },
+      opacity: 0, x: 30, duration: 0.7, ease: 'power3.out', clearProps: 'all',
     });
-
-    /* ── Nav: add shadow on scroll ── */
-    window.addEventListener('scroll', () => {
-      const nav = document.querySelector('.nav');
-      nav.style.borderBottomColor = window.scrollY > 20
-        ? 'var(--charcoal)'
-        : 'var(--charcoal)';
-      nav.style.boxShadow = window.scrollY > 20
-        ? '0 2px 0 var(--charcoal)'
-        : 'none';
-    }, { passive: true });
-  </script>
+  });
+</script>
 
 </body>
 </html>
